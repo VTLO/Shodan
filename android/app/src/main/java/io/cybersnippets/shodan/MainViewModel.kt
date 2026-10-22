@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 data class UiState(
     val apiKey: String = "",
     val userAgent: UserAgentSetting = UserAgentSetting(),
+    val filters: QueryFilters = QueryFilters(),
     val activeQuery: String = "",
     val running: Boolean = false,
     val error: String? = null,
@@ -68,10 +69,23 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun updateFilters(filters: QueryFilters) {
+        _state.value = _state.value.copy(filters = filters)
+    }
+
+    fun clearFilters() {
+        _state.value = _state.value.copy(filters = QueryFilters())
+    }
+
     fun runDork(dork: Dork) = runQuery(dork.query)
 
     fun runQuery(query: String, page: Int = 1) {
-        val trimmed = query.trim()
+        // Layer the active filters (country, city, device, …) onto the base query.
+        val trimmed = if (page == 1) {
+            _state.value.filters.applyTo(query)
+        } else {
+            query.trim()
+        }
         if (trimmed.isEmpty()) {
             _state.value = _state.value.copy(error = "Query is empty.")
             return

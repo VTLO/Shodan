@@ -14,6 +14,11 @@ Shodan API key; the app is just a mobile front-end for the documented
 - **Tap any dork** to run it; results (IP:port, org, product, location,
   hostnames, service banner) are listed with paging ("Load more").
 - Type a **custom Shodan query** and run it.
+- **Filter results** with a collapsible Filters panel — **country, city, org,
+  port, product, OS, and device type** (dropdown). Any filter you set is
+  AND-ed onto whatever dork or custom query you run (e.g. tapping *Webcam*
+  with `country:US` set searches `device:"webcam" country:"US"`), and the
+  combined query is shown above the results. "Clear" resets them.
 - **Check key** validates your API key and shows your plan and remaining
   query credits (`/api-info`).
 - The API key is stored **only on-device** via Jetpack DataStore and is sent

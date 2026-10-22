@@ -25,10 +25,16 @@ import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -145,6 +151,15 @@ fun AppScreen(vm: MainViewModel) {
                 )
             }
 
+            // Result filters (country, city, device, …)
+            item {
+                FiltersCard(
+                    filters = state.filters,
+                    onChange = { vm.updateFilters(it) },
+                    onClear = { vm.clearFilters() },
+                )
+            }
+
             // Messages
             state.error?.let { msg ->
                 item { Banner(msg, isError = true) { vm.clearMessages() } }
@@ -228,6 +243,137 @@ private fun ControlsCard(
                 TextButton(onClick = onOpenKey) {
                     Text("Set your Shodan API key to run searches →")
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FiltersCard(
+    filters: QueryFilters,
+    onChange: (QueryFilters) -> Unit,
+    onClear: () -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val active = filters.activeCount()
+
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    Icons.Filled.FilterList,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    if (active > 0) "Filters ($active active)" else "Filters",
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f),
+                )
+                if (active > 0) {
+                    TextButton(onClick = onClear) { Text("Clear") }
+                }
+                Icon(
+                    if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = if (expanded) "Collapse" else "Expand",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            if (expanded) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Added to every search you run.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterField(
+                        "Country (e.g. US)", filters.country, Modifier.weight(1f),
+                    ) { onChange(filters.copy(country = it)) }
+                    FilterField(
+                        "City", filters.city, Modifier.weight(1f),
+                    ) { onChange(filters.copy(city = it)) }
+                }
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterField(
+                        "Org", filters.org, Modifier.weight(1f),
+                    ) { onChange(filters.copy(org = it)) }
+                    FilterField(
+                        "Port", filters.port, Modifier.weight(1f),
+                    ) { onChange(filters.copy(port = it.filter(Char::isDigit))) }
+                }
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterField(
+                        "Product (e.g. nginx)", filters.product, Modifier.weight(1f),
+                    ) { onChange(filters.copy(product = it)) }
+                    FilterField(
+                        "OS (e.g. Windows)", filters.os, Modifier.weight(1f),
+                    ) { onChange(filters.copy(os = it)) }
+                }
+                Spacer(Modifier.height(8.dp))
+                DeviceDropdown(
+                    selected = filters.device,
+                    onSelect = { onChange(filters.copy(device = it)) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FilterField(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    onValueChange: (String) -> Unit,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label, style = MaterialTheme.typography.bodySmall) },
+        singleLine = true,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun DeviceDropdown(selected: String, onSelect: (String) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Column {
+        OutlinedTextField(
+            value = selected.ifBlank { "Any device" },
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Device type") },
+            trailingIcon = {
+                IconButton(onClick = { open = true }) {
+                    Icon(Icons.Filled.ArrowDropDown, contentDescription = "Choose device")
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { open = true },
+        )
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            QueryFilters.DEVICE_OPTIONS.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option.ifBlank { "Any device" }) },
+                    onClick = {
+                        onSelect(option)
+                        open = false
+                    },
+                )
             }
         }
     }
