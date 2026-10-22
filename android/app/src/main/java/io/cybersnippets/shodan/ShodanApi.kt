@@ -41,6 +41,18 @@ sealed interface ShodanResult<out T> {
     data class Err(val message: String) : ShodanResult<Nothing>
 }
 
+/** Ports that are conventionally served over TLS. */
+private val HTTPS_PORTS = setOf(443, 8443, 9443, 10443, 4443)
+
+/**
+ * Build a browsable URL for a finding. HTTPS ports get `https://`, everything
+ * else `http://`; the port is kept explicit so non-standard services load.
+ */
+fun HostResult.toUrl(): String {
+    val scheme = if (port in HTTPS_PORTS) "https" else "http"
+    return if (port > 0) "$scheme://$ip:$port" else "$scheme://$ip"
+}
+
 /**
  * Thin client over the Shodan REST API (https://developer.shodan.io/api).
  * The user supplies their own API key; this app is just a mobile front-end

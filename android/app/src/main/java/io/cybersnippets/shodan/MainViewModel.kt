@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 
 data class UiState(
     val apiKey: String = "",
+    val userAgent: UserAgentSetting = UserAgentSetting(),
     val activeQuery: String = "",
     val running: Boolean = false,
     val error: String? = null,
@@ -31,7 +32,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     init {
         viewModelScope.launch {
             val key = store.apiKey.first()
-            _state.value = _state.value.copy(apiKey = key)
+            val ua = store.currentUserAgent()
+            _state.value = _state.value.copy(apiKey = key, userAgent = ua)
         }
     }
 
@@ -39,6 +41,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             store.setApiKey(key)
             _state.value = _state.value.copy(apiKey = key.trim(), error = null)
+        }
+    }
+
+    fun saveUserAgent(preset: UserAgentPreset, custom: String) {
+        viewModelScope.launch {
+            store.setUserAgent(preset, custom)
+            _state.value = _state.value.copy(userAgent = UserAgentSetting(preset, custom.trim()))
         }
     }
 

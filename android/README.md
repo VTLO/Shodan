@@ -19,6 +19,22 @@ Shodan API key; the app is just a mobile front-end for the documented
 - The API key is stored **only on-device** via Jetpack DataStore and is sent
   only to `api.shodan.io` over HTTPS.
 
+### Integrated browser (findings opener)
+
+- Each result has an **Open** button that launches a built-in WebView browser
+  pointed at that finding. The URL is derived from the host — HTTPS ports
+  (443/8443/9443/10443/4443) use `https://`, everything else `http://`, and
+  the port is kept explicit so non-standard services load.
+- **Automated user-agent setup:** the browser applies your configured
+  user-agent automatically on open — no per-page fiddling. Presets are
+  *System default*, *Desktop Chrome*, *Android Chrome*, *iPhone Safari*,
+  *Googlebot*, or a *Custom* string. Set it once under the **gear/key icon →
+  Settings**; switch it live for the current page from the globe menu in the
+  browser toolbar (it reloads with the new UA).
+- Cleartext HTTP is allowed (`usesCleartextTraffic`) because many Shodan
+  findings are plain-HTTP services. The toolbar also offers reload and
+  *open in your external browser*.
+
 ## Prebuilt APK
 
 A ready-to-install debug build is at
@@ -46,10 +62,13 @@ gradle :app:assembleDebug          # or ./gradlew if you add the wrapper
 ## Using the app
 
 1. Launch **Shodan Dorks**.
-2. Tap the **key icon** (top-right) and paste your Shodan API key, then
-   **Save**. (Grab it from your Shodan account page.)
+2. Tap the **key icon** (top-right) to open **Settings**: paste your Shodan
+   API key and pick a browser user agent, then **Save**. (Grab the key from
+   your Shodan account page.)
 3. Optionally tap **Check key** to confirm it works and see your credits.
 4. Tap any listed dork, or type a custom query and tap **Run**.
+5. On any result, tap **Open** to load it in the integrated browser (your
+   chosen user agent is applied automatically).
 
 ## Tech
 
