@@ -1,4 +1,4 @@
-# Shodan Dorks — Android App
+# VTLOsh0d_ — Android App
 
 An Android client that runs **every request type listed in this repo's
 [`README.md`](../README.md)** against the official
@@ -66,7 +66,7 @@ gradle :app:assembleDebug          # or ./gradlew if you add the wrapper
 
 ## Using the app
 
-1. Launch **Shodan Dorks**.
+1. Launch **VTLOsh0d_**.
 2. Tap the **key icon** (top-right) to open **Settings**: paste your Shodan
    API key and pick a browser user agent, then **Save**. (Grab the key from
    your Shodan account page.)
