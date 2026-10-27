@@ -115,7 +115,7 @@ fun AppScreen(vm: MainViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Shodan Dorks") },
+                title = { Text("VTLOsh0d_") },
                 actions = {
                     IconButton(onClick = { showKeyDialog = true }) {
                         Icon(Icons.Filled.Key, contentDescription = "API key")
