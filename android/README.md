@@ -64,6 +64,15 @@ gradle :app:assembleDebug          # or ./gradlew if you add the wrapper
 # output: app/build/outputs/apk/debug/app-debug.apk
 ```
 
+## First-launch guide
+
+On the first launch the app shows a short **animated guide in French** that
+walks through the API key, running a search, filtering, and opening a finding.
+You can replay it any time from **Settings → "Revoir le guide / Replay guide"**.
+
+A **PC web-app** version with the same features lives in
+[`../web/index.html`](../web/index.html) — download and open it in any browser.
+
 ## Using the app
 
 1. Launch **VTLOsh0d_**.

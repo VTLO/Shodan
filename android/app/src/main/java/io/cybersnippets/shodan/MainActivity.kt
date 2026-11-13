@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -128,6 +129,10 @@ fun AppScreen(vm: MainViewModel) {
             initialKey = state.apiKey,
             initialUa = state.userAgent,
             onDismiss = { showKeyDialog = false },
+            onReplayGuide = {
+                showKeyDialog = false
+                vm.replayOnboarding()
+            },
             onSave = { key, preset, custom ->
                 vm.saveApiKey(key)
                 vm.saveUserAgent(preset, custom)
@@ -136,6 +141,7 @@ fun AppScreen(vm: MainViewModel) {
         )
     }
 
+    Box(Modifier.fillMaxSize()) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -224,6 +230,11 @@ fun AppScreen(vm: MainViewModel) {
                 }
                 item { Spacer(Modifier.height(24.dp)) }
             }
+        }
+    }
+
+        if (state.showOnboarding) {
+            OnboardingOverlay(onFinish = { vm.finishOnboarding() })
         }
     }
 }
@@ -588,6 +599,7 @@ private fun SettingsDialog(
     initialKey: String,
     initialUa: UserAgentSetting,
     onDismiss: () -> Unit,
+    onReplayGuide: () -> Unit,
     onSave: (key: String, preset: UserAgentPreset, custom: String) -> Unit,
 ) {
     var keyText by remember { mutableStateOf(initialKey) }
@@ -651,6 +663,10 @@ private fun SettingsDialog(
                         label = { Text("Custom user-agent string") },
                         modifier = Modifier.fillMaxWidth(),
                     )
+                }
+
+                TextButton(onClick = onReplayGuide) {
+                    Text("Revoir le guide / Replay guide")
                 }
             }
         },
