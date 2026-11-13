@@ -67,7 +67,7 @@ class BrowserActivity : ComponentActivity() {
         val initialUa = runBlocking { ApiKeyStore(applicationContext).currentUserAgent() }
 
         setContent {
-            MaterialTheme(colorScheme = ShodanColors) {
+            MaterialTheme(colorScheme = ShodanColors, typography = ShodanTypography) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     BrowserScreen(
                         startUrl = startUrl,
@@ -175,7 +175,7 @@ private fun BrowserScreen(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
                         )
                     }
                 },
@@ -222,10 +222,10 @@ private fun BrowserScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    navigationIconContentColor = MaterialTheme.colorScheme.primary,
-                    actionIconContentColor = MaterialTheme.colorScheme.primary,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
             )
         },

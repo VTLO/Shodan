@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VTLOsh0d_</title>
+<style>
+  :root {
+    --orange: #ff8200;
+    --orange-soft: #ffb266;
+    --bg: #000000;
+    --surface: #0d0d0d;
+    --surface-2: #1a1206;
+    --text: #ffc98c;
+    --muted: #e0954a;
+    --err: #ff5252;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "DejaVu Sans Mono", "Courier New", monospace;
+    font-size: 14px;
+  }
+  header {
+    background: var(--orange);
+    color: #000;
+    padding: 14px 18px;
+    font-weight: bold;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header .tools button {
+    background: #000;
+    color: var(--orange);
+    border: 1px solid #000;
+    font-family: inherit;
+    font-weight: bold;
+    padding: 6px 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    margin-left: 6px;
+  }
+  main { max-width: 900px; margin: 0 auto; padding: 14px; }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--orange);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .row > * { flex: 1 1 140px; }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  input, select, textarea {
+    width: 100%;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--orange);
+    border-radius: 8px;
+    padding: 9px;
+    font-family: inherit;
+    font-size: 14px;
+  }
+  button.primary {
+    background: var(--orange);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: inherit;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  button.ghost {
+    background: transparent;
+    color: var(--orange);
+    border: 1px solid var(--orange);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.5; cursor: default; }
+  h2.section { color: var(--orange); font-size: 13px; letter-spacing: 1px; margin: 16px 0 6px; }
+  .dork {
+    background: var(--surface-2);
+    border: 1px solid var(--orange);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+  .dork:hover { background: #241804; }
+  .dork .title { font-weight: bold; color: var(--text); }
+  .dork .desc { font-size: 12px; color: var(--muted); }
+  .dork .q { font-size: 12px; color: var(--orange-soft); word-break: break-all; }
+  .result {
+    background: var(--surface);
+    border: 1px solid var(--orange);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  .result .addr { font-weight: bold; }
+  .result .sub { font-size: 12px; color: var(--muted); }
+  .result .host { font-size: 12px; color: var(--orange-soft); word-break: break-all; }
+  .result pre {
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-size: 11px;
+    color: var(--muted);
+    max-height: 140px;
+    overflow: auto;
+    margin: 6px 0 0;
+  }
+  .result a.open {
+    color: #000; background: var(--orange); text-decoration: none;
+    padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 12px;
+    float: right;
+  }
+  .banner { padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; color: #000; }
+  .banner.err { background: var(--err); }
+  .banner.ok { background: var(--orange-soft); }
+  .collapse-head { display: flex; align-items: center; cursor: pointer; user-select: none; }
+  .collapse-head .label { flex: 1; font-weight: bold; }
+  .footer { text-align: center; color: var(--muted); font-size: 12px; padding: 20px 0; }
+
+  /* Onboarding overlay */
+  #guide {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+    display: none; align-items: center; justify-content: center; z-index: 50;
+  }
+  #guide.show { display: flex; }
+  .guide-card {
+    background: var(--surface); border: 1px solid var(--orange);
+    border-radius: 16px; padding: 26px; max-width: 420px; width: 90%;
+    text-align: center; animation: pop .25s ease;
+  }
+  @keyframes pop { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .guide-icon {
+    width: 80px; height: 80px; border-radius: 50%; background: var(--orange);
+    color: #000; font-size: 40px; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px; animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { transform: scale(.94);} 50% { transform: scale(1.08);} }
+  .guide-title { color: var(--orange); font-weight: bold; font-size: 20px; margin-bottom: 10px; }
+  .guide-body { color: var(--text); font-size: 14px; line-height: 1.5; min-height: 84px; }
+  .guide-step { animation: slidein .3s ease; }
+  @keyframes slidein { from { transform: translateX(26px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .dots { display: flex; gap: 8px; justify-content: center; margin: 18px 0; }
+  .dot { height: 8px; width: 8px; border-radius: 4px; background: rgba(224,149,74,.4); transition: width .3s, background .3s; }
+  .dot.active { width: 22px; background: var(--orange); }
+  .guide-actions { display: flex; justify-content: space-between; align-items: center; }
+</style>
+</head>
+<body>
+<header>
+  <span>VTLOsh0d_</span>
+  <span class="tools">
+    <button id="btnGuide" title="Revoir le guide">?</button>
+    <button id="btnKey" title="Clé API">🔑 Clé</button>
+  </span>
+</header>
+
+<main>
+  <div id="banner"></div>
+
+  <!-- Controls -->
+  <div class="panel">
+    <label for="apiKey">Clé API Shodan (stockée sur cet appareil)</label>
+    <input id="apiKey" type="password" placeholder="Votre clé Shodan" />
+    <div class="row" style="margin-top:10px">
+      <input id="query" placeholder='Requête personnalisée, ex. apache country:"DE"' />
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="primary" id="btnRun">Run</button>
+      <button class="ghost" id="btnCheck">Check key</button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="panel">
+    <div class="collapse-head" id="filtersHead">
+      <span class="label">⛃ Filtres <span id="filterCount"></span></span>
+      <span id="filtersToggle">▾</span>
+    </div>
+    <div id="filtersBody" style="display:none; margin-top:10px">
+      <div class="row">
+        <div><label>Country (ex. US)</label><input id="f_country" /></div>
+        <div><label>City</label><input id="f_city" /></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div><label>Org</label><input id="f_org" /></div>
+        <div><label>Port</label><input id="f_port" inputmode="numeric" /></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div><label>Product (ex. nginx)</label><input id="f_product" /></div>
+        <div><label>OS (ex. Windows)</label><input id="f_os" /></div>
+      </div>
+      <div style="margin-top:8px">
+        <label>Device type</label>
+        <select id="f_device"></select>
+      </div>
+      <button class="ghost" id="btnClearFilters" style="margin-top:10px">Clear</button>
+    </div>
+  </div>
+
+  <!-- Results / Catalog -->
+  <div id="resultsWrap"></div>
+  <div id="catalog"></div>
+
+  <div class="footer">VTLOsh0d_ — client Shodan · © VTLO</div>
+</main>
+
+<!-- Onboarding -->
+<div id="guide">
+  <div class="guide-card">
+    <div class="guide-icon" id="guideIcon">▮</div>
+    <div class="guide-step" id="guideStep">
+      <div class="guide-title" id="guideTitle"></div>
+      <div class="guide-body" id="guideBody"></div>
+    </div>
+    <div class="dots" id="guideDots"></div>
+    <div class="guide-actions">
+      <button class="ghost" id="guideSkip">Passer</button>
+      <button class="primary" id="guideNext">Suivant</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+// ---- Dork catalogue (from the cheat-sheet) ----
+const CATEGORIES = [
+  { name: "Basic Filters", dorks: [
+    ["city", "Find devices in a particular city.", 'city:"Bangalore"'],
+    ["country", "Find devices in a particular country.", 'country:"IN"'],
+    ["geo", "Find devices by geographical coordinates.", 'geo:"56.913055,118.250862"'],
+    ["hostname", "Find devices matching the hostname.", 'server: "gws" hostname:"google"'],
+    ["net", "Find devices based on an IP address or /x CIDR.", 'net:210.214.0.0/16'],
+    ["os", "Find devices based on operating system.", 'os:"windows 7"'],
+    ["port", "Find devices based on open ports.", 'proftpd port:21'],
+    ["before / after", "Find devices between a given time window.", 'apache after:22/02/2009 before:14/3/2010'],
+  ]},
+  { name: "Exposed Services & Devices", dorks: [
+    ["Citrix", "Find Citrix Gateway.", 'title:"citrix gateway"'],
+    ["Wifi Passwords", "Cleartext wifi passwords surfaced in Shodan.", 'html:"def_wirelesspassword"'],
+    ["Surveillance Cams", "Surveillance cameras (uc-httpd).", 'NETSurveillance uc-httpd'],
+    ["Fuel Pumps", "Fuel pumps with a CLI terminal exposed.", '"privileged command" GET'],
+    ["Windows RDP", "Windows RDP handshake banner.", '"\\x03\\x00\\x00\\x0b\\x06\\xd0\\x00\\x00\\x124\\x00"'],
+    ["MongoDB", "MongoDB servers exposing server information.", '"MongoDB Server Information" port:27017 -authentication'],
+    ["FTP Anonymous (banner)", "FTP servers allowing anonymous access.", '"220" "230 Login successful." port:21'],
+    ["Jenkins", "Unrestricted Jenkins dashboards.", 'x-jenkins 200'],
+    ["Hacked Routers", "Routers that got compromised.", 'hacked-router-help-sos'],
+    ["Open ATM", "ATM availability (NCR, SNMP).", 'NCR Port:"161"'],
+    ["Telnet Access", "Telnet gateways with no password.", 'port:23 console gateway'],
+    ["Misconfigured WordPress", "Exposed wp-config.php creation script.", 'http.html:"* The wp-config.php creation script uses this file"'],
+    ["Hiring", "Sites advertising recruiting headers.", '"X-Recruiting:"'],
+    ["Android Debug Bridge", "Android root bridges on port 5555.", '"Android Debug Bridge" "Device" port:5555'],
+    ["Ethereum Miners", "Miners running ETH.", '"ETH - Total speed"'],
+    ["Tesla PowerPack", "Charging status of Tesla PowerPacks.", 'http.title:"Tesla PowerPack System" http.component:"d3" -ga3ca4f2'],
+    ["Default Password", "Devices advertising a default password.", '"default password"'],
+    ["Windows RDP + Screenshots", "Windows servers with RDP and screenshots.", 'os:windows port:3389 has_screenshot:yes'],
+    ["MySQL in London", "MySQL servers in London, GB.", 'country:gb city:london product:MySQL'],
+    ["Google Expired SSL", "Google-owned hosts with expired SSL certs.", 'org:google ssl.cert.expired:true'],
+    ["Unprotected VNC", "VNC with authentication disabled.", '"authentication disabled" "RFB 003.008"'],
+    ["FTP Anonymous Login", "FTP anonymous login OK.", 'anonymous@ login ok. port:"21"'],
+    ["SMB No Authentication", "SMB with authentication disabled.", 'port:"445" Authentication: "disabled"'],
+    ["SMB No Auth — DC", "Domain controllers with SMB auth disabled.", '"Authentication: disabled" NETLOGON SYSVOL -unix port:445'],
+    ["Cisco No Authentication", "Cisco devices advertising the cisco/cisco notice.", '"This feature requires the one-time use of the username \\"cisco\\" with the password \\"cisco\\""'],
+    ["HP Printers", "HP printers via embedded HTTP server.", '"Serial Number:" "Built:" "Server: HP HTTP"'],
+    ["Xerox/Epson Printers (Linux UPnP)", "Epson Linux UPnP print servers.", '"SERVER: EPSON_Linux UPnP" "200 OK"'],
+    ["Xerox/Epson Printers (HTTP)", "Epson HTTP print servers.", '"Server: EPSON-HTTP" "200 OK"'],
+  ]},
+  { name: "Device Types", dorks: [
+    ["Firewall","device:firewall","device:firewall"],["Router","device:router","device:router"],
+    ["WAP","device:wap","device:wap"],["Webcam","device:webcam","device:webcam"],
+    ["Media","device:media","device:media"],["Broadband Router",'device:"broadband router"','device:"broadband router"'],
+    ["PBX","device:pbx","device:pbx"],["Printer","device:printer","device:printer"],
+    ["Switch","device:switch","device:switch"],["Storage","device:storage","device:storage"],
+    ["Specialized","device:specialized","device:specialized"],["Phone","device:phone","device:phone"],
+    ["VoIP",'device:"voip"','device:"voip"'],["VoIP Phone",'device:"voip phone"','device:"voip phone"'],
+    ["VoIP Adaptor",'device:"voip adaptor"','device:"voip adaptor"'],["Load Balancer",'device:"load balancer"','device:"load balancer"'],
+    ["Print Server",'device:"print server"','device:"print server"'],["Terminal","device:terminal","device:terminal"],
+    ["Remote","device:remote","device:remote"],["Telecom","device:telecom","device:telecom"],
+    ["Power","device:power","device:power"],["Proxy","device:proxy","device:proxy"],
+    ["PDA","device:pda","device:pda"],["Bridge","device:bridge","device:bridge"],
+  ]},
+];
+const DEVICE_OPTIONS = ["","firewall","router","wap","webcam","media","broadband router","pbx","printer","switch","storage","specialized","phone","voip","voip phone","voip adaptor","load balancer","print server","terminal","remote","telecom","power","proxy","pda","bridge"];
+const HTTPS_PORTS = new Set([443,8443,9443,10443,4443]);
+
+// ---- State ----
+const $ = (id) => document.getElementById(id);
+let state = { activeQuery: "", page: 1, total: 0, results: [] };
+
+function getKey() { return $("apiKey").value.trim(); }
+function saveKey() { try { localStorage.setItem("vtlosh0d_key", getKey()); } catch(e){} }
+function loadKey() { try { return localStorage.getItem("vtlosh0d_key") || ""; } catch(e){ return ""; } }
+
+// ---- Filters ----
+function quoted(k, v) { v = (v||"").trim(); return v ? `${k}:"${v}"` : null; }
+function buildQuery(base) {
+  const parts = [];
+  const b = (base||"").trim(); if (b) parts.push(b);
+  [["country", $("f_country").value], ["city", $("f_city").value], ["org", $("f_org").value],
+   ["product", $("f_product").value], ["os", $("f_os").value]].forEach(([k,v]) => {
+    const t = quoted(k, v); if (t) parts.push(t);
+  });
+  const port = ($("f_port").value||"").replace(/\D/g, "");
+  if (port) parts.push("port:" + port);
+  const dev = $("f_device").value;
+  if (dev) parts.push(`device:"${dev}"`);
+  return parts.join(" ");
+}
+function activeFilterCount() {
+  let n = 0;
+  ["f_country","f_city","f_org","f_product","f_os","f_port","f_device"].forEach(id => {
+    if (($(id).value||"").trim()) n++;
+  });
+  return n;
+}
+function refreshFilterCount() {
+  const n = activeFilterCount();
+  $("filterCount").textContent = n ? `(${n} actifs)` : "";
+}
+
+// ---- Banner ----
+function banner(msg, isErr) {
+  $("banner").innerHTML = msg ? `<div class="banner ${isErr?'err':'ok'}">${escapeHtml(msg)}</div>` : "";
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ---- API ----
+async function apiGet(path, params) {
+  const key = getKey();
+  if (!key) { banner("Aucune clé API. Ajoutez-la ci-dessus.", true); return null; }
+  params.key = key;
+  const qs = Object.entries(params).map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join("&");
+  const res = await fetch(`https://api.shodan.io${path}?${qs}`);
+  const text = await res.text();
+  let json; try { json = JSON.parse(text); } catch(e) { json = {}; }
+  if (!res.ok) {
+    throw new Error(json.error || httpMsg(res.status));
+  }
+  return json;
+}
+function httpMsg(code) {
+  if (code === 401) return "Clé API invalide (401).";
+  if (code === 403) return "Accès refusé — votre forfait n'autorise peut-être pas les filtres (403).";
+  if (code === 429) return "Limite de requêtes atteinte (429).";
+  return `Échec de la requête (HTTP ${code}).`;
+}
+
+async function checkKey() {
+  banner("");
+  try {
+    const info = await apiGet("/api-info", {});
+    banner(`Clé valide — forfait: ${info.plan}, ${info.query_credits} crédits de requête.`, false);
+  } catch(e) { banner(e.message, true); }
+}
+
+function finding_url(m) {
+  const scheme = HTTPS_PORTS.has(m.port) ? "https" : "http";
+  return m.port ? `${scheme}://${m.ip_str}:${m.port}` : `${scheme}://${m.ip_str}`;
+}
+
+async function runQuery(base, page) {
+  page = page || 1;
+  const q = page === 1 ? buildQuery(base) : state.activeQuery;
+  if (!q.trim()) { banner("Requête vide.", true); return; }
+  banner("");
+  setBusy(true);
+  try {
+    const json = await apiGet("/shodan/host/search", { query: q, page: String(page) });
+    const matches = json.matches || [];
+    state.activeQuery = q;
+    state.page = page;
+    state.total = json.total || matches.length;
+    state.results = page === 1 ? matches : state.results.concat(matches);
+    renderResults();
+  } catch(e) {
+    banner(e.message, true);
+  } finally {
+    setBusy(false);
+  }
+}
+
+function setBusy(b) {
+  $("btnRun").disabled = b; $("btnCheck").disabled = b;
+}
+
+// ---- Render ----
+function renderResults() {
+  const wrap = $("resultsWrap");
+  if (!state.activeQuery) { wrap.innerHTML = ""; $("catalog").style.display = ""; return; }
+  $("catalog").style.display = "none";
+  let html = `<div class="panel"><div style="color:var(--orange);font-weight:bold">Results</div>
+    <div style="color:var(--orange-soft);font-size:12px;word-break:break-all">${escapeHtml(state.activeQuery)}</div>
+    <div style="color:var(--muted);font-size:12px">Affichage de ${state.results.length} sur ${state.total} résultats
+    <button class="ghost" id="btnBackCatalog" style="float:right;padding:4px 10px">Catalogue</button></div></div>`;
+  for (const m of state.results) {
+    const sub = [m.product, m.org, [m.location && m.location.city, m.location && m.location.country_name].filter(Boolean).join(", ")]
+      .filter(x => x && x !== "null").join(" • ");
+    const hosts = (m.hostnames||[]).join(", ");
+    const banner = (m.data||"").trim().slice(0, 600);
+    html += `<div class="result">
+      <a class="open" href="${escapeHtml(finding_url(m))}" target="_blank" rel="noopener noreferrer">Open ▶</a>
+      <div class="addr">${escapeHtml(m.ip_str)}:${m.port}/${escapeHtml(m.transport||'tcp')}</div>
+      ${sub ? `<div class="sub">${escapeHtml(sub)}</div>` : ""}
+      ${hosts ? `<div class="host">${escapeHtml(hosts)}</div>` : ""}
+      ${banner ? `<pre>${escapeHtml(banner)}</pre>` : ""}
+    </div>`;
+  }
+  if (state.results.length < state.total) {
+    html += `<div style="text-align:center;margin:10px"><button class="ghost" id="btnMore">Load more</button></div>`;
+  } else {
+    html += `<div style="text-align:center;color:var(--muted);margin:10px">Fin des résultats</div>`;
+  }
+  wrap.innerHTML = html;
+  const back = $("btnBackCatalog"); if (back) back.onclick = () => { state.activeQuery=""; renderResults(); };
+  const more = $("btnMore"); if (more) more.onclick = () => runQuery(state.activeQuery, state.page + 1);
+}
+
+function renderCatalog() {
+  let html = "";
+  for (const cat of CATEGORIES) {
+    html += `<h2 class="section">${escapeHtml(cat.name.toUpperCase())}</h2>`;
+    for (const [title, desc, q] of cat.dorks) {
+      html += `<div class="dork" data-q="${escapeHtml(q)}">
+        <div class="title">${escapeHtml(title)} ▶</div>
+        <div class="desc">${escapeHtml(desc)}</div>
+        <div class="q">${escapeHtml(q)}</div>
+      </div>`;
+    }
+  }
+  $("catalog").innerHTML = html;
+  document.querySelectorAll(".dork").forEach(el => {
+    el.onclick = () => runQuery(el.getAttribute("data-q"), 1);
+  });
+}
+
+// ---- Onboarding (French animated guide) ----
+const GUIDE = [
+  ["▮", "Bienvenue sur VTLOsh0d_", "Client Shodan pour PC. Lancez tous les types de requêtes du cheat-sheet et explorez les résultats depuis votre navigateur."],
+  ["🔑", "1 · Votre clé API", "Collez votre clé API Shodan en haut de la page. Elle est stockée uniquement dans ce navigateur."],
+  ["🔎", "2 · Lancer une recherche", "Cliquez sur un dork, ou tapez votre propre requête, puis « Run ». Les résultats s'affichent avec pagination."],
+  ["⛃", "3 · Filtrer", "Affinez par pays, ville, organisation, port, produit, OS ou type d'appareil. Les filtres s'ajoutent à chaque recherche."],
+  ["▶", "4 · Ouvrir un résultat", "Cliquez sur « Open » sur un résultat pour l'ouvrir dans un nouvel onglet."],
+];
+let guideIdx = 0;
+function showGuide(i) {
+  guideIdx = i;
+  const [icon, title, body] = GUIDE[i];
+  $("guideIcon").textContent = icon;
+  const step = $("guideStep");
+  step.classList.remove("guide-step"); void step.offsetWidth; step.classList.add("guide-step");
+  $("guideTitle").textContent = title;
+  $("guideBody").textContent = body;
+  $("guideDots").innerHTML = GUIDE.map((_, j) => `<span class="dot ${j===i?'active':''}"></span>`).join("");
+  $("guideNext").textContent = i === GUIDE.length - 1 ? "Commencer" : "Suivant";
+  $("guideSkip").textContent = i === GUIDE.length - 1 ? "Fermer" : "Passer";
+}
+function openGuide() { $("guide").classList.add("show"); showGuide(0); }
+function closeGuide() {
+  $("guide").classList.remove("show");
+  try { localStorage.setItem("vtlosh0d_onboarded", "1"); } catch(e){}
+}
+
+// ---- Init ----
+function init() {
+  // device select
+  $("f_device").innerHTML = DEVICE_OPTIONS.map(d => `<option value="${d}">${d || "Any device"}</option>`).join("");
+  $("apiKey").value = loadKey();
+
+  $("apiKey").addEventListener("change", saveKey);
+  $("btnRun").onclick = () => { saveKey(); runQuery($("query").value, 1); };
+  $("query").addEventListener("keydown", e => { if (e.key === "Enter") { saveKey(); runQuery($("query").value, 1); } });
+  $("btnCheck").onclick = () => { saveKey(); checkKey(); };
+  $("btnKey").onclick = () => $("apiKey").focus();
+
+  $("filtersHead").onclick = () => {
+    const b = $("filtersBody");
+    const open = b.style.display === "none";
+    b.style.display = open ? "block" : "none";
+    $("filtersToggle").textContent = open ? "▴" : "▾";
+  };
+  ["f_country","f_city","f_org","f_product","f_os","f_port","f_device"].forEach(id =>
+    $(id).addEventListener("input", refreshFilterCount));
+  $("btnClearFilters").onclick = () => {
+    ["f_country","f_city","f_org","f_product","f_os","f_port"].forEach(id => $(id).value = "");
+    $("f_device").value = ""; refreshFilterCount();
+  };
+
+  $("btnGuide").onclick = openGuide;
+  $("guideSkip").onclick = closeGuide;
+  $("guideNext").onclick = () => { if (guideIdx === GUIDE.length - 1) closeGuide(); else showGuide(guideIdx + 1); };
+
+  renderCatalog();
+  renderResults();
+  refreshFilterCount();
+
+  let onboarded = false;
+  try { onboarded = localStorage.getItem("vtlosh0d_onboarded") === "1"; } catch(e){}
+  if (!onboarded) openGuide();
+}
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

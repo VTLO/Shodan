@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -49,6 +50,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.Typography
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -65,23 +68,45 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+// Flipper-style retro palette: orange on black, monospace everywhere.
+internal val FlipperOrange = Color(0xFFFF8200)
+
 internal val ShodanColors = darkColorScheme(
-    primary = Color(0xFFE8403A),
-    onPrimary = Color.White,
-    secondary = Color(0xFF4FC3F7),
-    background = Color(0xFF0B1016),
-    surface = Color(0xFF121A24),
-    onSurface = Color(0xFFE6EDF3),
-    surfaceVariant = Color(0xFF1B2733),
-    onSurfaceVariant = Color(0xFFAFC0D0),
-    error = Color(0xFFFF6E6E),
+    primary = FlipperOrange,
+    onPrimary = Color(0xFF000000),
+    secondary = Color(0xFFFFB266),
+    onSecondary = Color(0xFF000000),
+    background = Color(0xFF000000),
+    onBackground = FlipperOrange,
+    surface = Color(0xFF0D0D0D),
+    onSurface = Color(0xFFFFC98C),
+    surfaceVariant = Color(0xFF1A1206),
+    onSurfaceVariant = Color(0xFFE0954A),
+    outline = FlipperOrange,
+    error = Color(0xFFFF5252),
 )
+
+/** Apply a monospace (pixel-terminal) font family to the text styles we use. */
+internal val ShodanTypography: Typography = Typography().run {
+    val m = FontFamily.Monospace
+    copy(
+        titleLarge = titleLarge.copy(fontFamily = m),
+        titleMedium = titleMedium.copy(fontFamily = m),
+        titleSmall = titleSmall.copy(fontFamily = m),
+        bodyLarge = bodyLarge.copy(fontFamily = m),
+        bodyMedium = bodyMedium.copy(fontFamily = m),
+        bodySmall = bodySmall.copy(fontFamily = m),
+        labelLarge = labelLarge.copy(fontFamily = m),
+        labelMedium = labelMedium.copy(fontFamily = m),
+        labelSmall = labelSmall.copy(fontFamily = m),
+    )
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme(colorScheme = ShodanColors) {
+            MaterialTheme(colorScheme = ShodanColors, typography = ShodanTypography) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val vm: MainViewModel = viewModel()
                     AppScreen(vm)
@@ -104,6 +129,10 @@ fun AppScreen(vm: MainViewModel) {
             initialKey = state.apiKey,
             initialUa = state.userAgent,
             onDismiss = { showKeyDialog = false },
+            onReplayGuide = {
+                showKeyDialog = false
+                vm.replayOnboarding()
+            },
             onSave = { key, preset, custom ->
                 vm.saveApiKey(key)
                 vm.saveUserAgent(preset, custom)
@@ -112,19 +141,20 @@ fun AppScreen(vm: MainViewModel) {
         )
     }
 
+    Box(Modifier.fillMaxSize()) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("VTLOsh0d_") },
+                title = { Text("VTLOsh0d_", fontWeight = FontWeight.Bold) },
                 actions = {
                     IconButton(onClick = { showKeyDialog = true }) {
                         Icon(Icons.Filled.Key, contentDescription = "API key")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    actionIconContentColor = MaterialTheme.colorScheme.primary,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
             )
         },
@@ -202,6 +232,11 @@ fun AppScreen(vm: MainViewModel) {
             }
         }
     }
+
+        if (state.showOnboarding) {
+            OnboardingOverlay(onFinish = { vm.finishOnboarding() })
+        }
+    }
 }
 
 @Composable
@@ -214,7 +249,11 @@ private fun ControlsCard(
     onCheck: () -> Unit,
     onOpenKey: () -> Unit,
 ) {
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+    ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             OutlinedTextField(
                 value = customQuery,
@@ -257,7 +296,11 @@ private fun FiltersCard(
     var expanded by remember { mutableStateOf(false) }
     val active = filters.activeCount()
 
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+    ) {
         Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
             Row(
                 modifier = Modifier
@@ -395,6 +438,7 @@ private fun DorkRow(dork: Dork, enabled: Boolean, onClick: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
         modifier = Modifier
             .fillMaxWidth()
             .clickable(enabled = enabled, onClick = onClick),
@@ -457,6 +501,7 @@ private fun ResultCard(host: HostResult, onOpen: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(12.dp)) {
@@ -554,6 +599,7 @@ private fun SettingsDialog(
     initialKey: String,
     initialUa: UserAgentSetting,
     onDismiss: () -> Unit,
+    onReplayGuide: () -> Unit,
     onSave: (key: String, preset: UserAgentPreset, custom: String) -> Unit,
 ) {
     var keyText by remember { mutableStateOf(initialKey) }
@@ -617,6 +663,10 @@ private fun SettingsDialog(
                         label = { Text("Custom user-agent string") },
                         modifier = Modifier.fillMaxWidth(),
                     )
+                }
+
+                TextButton(onClick = onReplayGuide) {
+                    Text("Revoir le guide / Replay guide")
                 }
             }
         },

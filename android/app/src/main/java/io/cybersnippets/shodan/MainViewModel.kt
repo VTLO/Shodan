@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 data class UiState(
     val apiKey: String = "",
     val userAgent: UserAgentSetting = UserAgentSetting(),
+    val showOnboarding: Boolean = false,
     val filters: QueryFilters = QueryFilters(),
     val activeQuery: String = "",
     val running: Boolean = false,
@@ -34,8 +35,23 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val key = store.apiKey.first()
             val ua = store.currentUserAgent()
-            _state.value = _state.value.copy(apiKey = key, userAgent = ua)
+            val onboardingDone = store.onboardingDone.first()
+            _state.value = _state.value.copy(
+                apiKey = key,
+                userAgent = ua,
+                showOnboarding = !onboardingDone,
+            )
         }
+    }
+
+    fun finishOnboarding() {
+        _state.value = _state.value.copy(showOnboarding = false)
+        viewModelScope.launch { store.setOnboardingDone(true) }
+    }
+
+    /** Re-open the first-launch guide on demand (from Settings). */
+    fun replayOnboarding() {
+        _state.value = _state.value.copy(showOnboarding = true)
     }
 
     fun saveApiKey(key: String) {

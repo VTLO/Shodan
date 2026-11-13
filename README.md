@@ -1,6 +1,21 @@
 # Shodan-search-cheat-sheet
 *cybersnippets
 
+## VTLOsh0d_ — apps (by VTLO)
+
+Two ready-to-use clients that run every request type from this cheat-sheet
+against the official Shodan API with your own API key. Both ship with a short
+**animated French guide** on first launch.
+
+- **Android app** — download the prebuilt APK:
+  [`android/dist/shodan-dorks-debug.apk`](android/dist/shodan-dorks-debug.apk)
+  (install with `adb install -r shodan-dorks-debug.apk`). Source + build
+  instructions in [`android/`](android/).
+- **PC web app** — built, self-contained, no build step:
+  [`web/index.html`](web/index.html). Download it and open it in any browser,
+  or serve the `web/` folder (`python3 -m http.server` from inside `web/`).
+  Everything runs locally; your API key stays in the browser.
+
 # Shodan Dorks
 *Dorks for shodan.io* website. Taken from publicly available sources.
 

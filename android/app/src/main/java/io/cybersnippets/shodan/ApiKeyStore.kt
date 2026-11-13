@@ -1,6 +1,7 @@
 package io.cybersnippets.shodan
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -28,8 +29,12 @@ class ApiKeyStore(private val context: Context) {
     private val keyPref = stringPreferencesKey("api_key")
     private val uaPresetPref = stringPreferencesKey("ua_preset")
     private val uaCustomPref = stringPreferencesKey("ua_custom")
+    private val onboardingDonePref = booleanPreferencesKey("onboarding_done")
 
     val apiKey: Flow<String> = context.dataStore.data.map { it[keyPref] ?: "" }
+
+    /** Whether the first-launch guide has been seen. */
+    val onboardingDone: Flow<Boolean> = context.dataStore.data.map { it[onboardingDonePref] ?: false }
 
     val userAgent: Flow<UserAgentSetting> = context.dataStore.data.map { prefs ->
         UserAgentSetting(
@@ -47,6 +52,10 @@ class ApiKeyStore(private val context: Context) {
             it[uaPresetPref] = preset.name
             it[uaCustomPref] = custom.trim()
         }
+    }
+
+    suspend fun setOnboardingDone(done: Boolean) {
+        context.dataStore.edit { it[onboardingDonePref] = done }
     }
 
     /** One-shot read used by the browser activity when it starts. */
